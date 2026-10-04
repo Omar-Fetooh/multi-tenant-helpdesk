@@ -19,3 +19,44 @@ model Article {
   createdAt   DateTime @default(now())
   updatedAt   DateTime @updatedAt
 }
+
+model User {
+  id              Int      @id @default(autoincrement())
+  email           String   @unique
+  first_name      String
+  last_name       String
+  password_hash   String
+  avatar_url      String?
+  is_active       Boolean  @default(true)
+  created_at      DateTime @default(now())
+  updated_at      DateTime @updatedAt
+
+  organization_members OrganizationMember[]
+}
+
+model Organization {
+  id          Int       @id @default(autoincrement())
+  name        String
+  slug        String    @unique
+  created_at  DateTime  @default(now())
+  updated_at  DateTime  @updatedAt
+
+  members OrganizationMember[]
+}
+
+model OrganizationMember {
+  user_id         Int
+  organization_id Int
+  role            OrganizationRole  
+  joined_at       DateTime @default(now())
+
+  user         User @relation(fields: [user_id], references: [id])
+  organization Organization @relation(fields: [organization_id], references: [id])
+  
+  @@id([user_id, organization_id])
+}
+
+enum OrganizationRole {
+  ADMIN
+  AGENT
+}

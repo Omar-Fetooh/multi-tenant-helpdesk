@@ -10,53 +10,186 @@ datasource db {
   url      = env("DATABASE_URL")
 }
 
-model Article {
-  id          Int      @id @default(autoincrement())
-  title       String   @unique
-  description String?
-  body        String
-  published   Boolean  @default(false)
-  createdAt   DateTime @default(now())
-  updatedAt   DateTime @updatedAt
-}
+// model Article {
+//   id          Int      @id @default(autoincrement())
+//   title       String   @unique
+//   description String?
+//   body        String
+//   published   Boolean  @default(false)
+//   createdAt   DateTime @default(now())
+//   updatedAt   DateTime @updatedAt
+// }
 
 model User {
-  id              Int      @id @default(autoincrement())
-  email           String   @unique
-  first_name      String
-  last_name       String
-  password_hash   String
-  avatar_url      String?
-  is_active       Boolean  @default(true)
-  created_at      DateTime @default(now())
-  updated_at      DateTime @updatedAt
+  id            Int      @id @default(autoincrement())
+  email         String   @unique
+  first_name    String
+  last_name     String
+  password_hash String
+  avatar_url    String?
+  is_active     Boolean  @default(true)
+  created_at    DateTime @default(now())
+  updated_at    DateTime @updatedAt
 
   organization_members OrganizationMember[]
+  team_members         TeamMember[]
+  comments             Comment[]
+  ticket_events        TicketEvent[]
+  assigned_tickets     Ticket[]
 }
 
 model Organization {
-  id          Int       @id @default(autoincrement())
-  name        String
-  slug        String    @unique
-  created_at  DateTime  @default(now())
-  updated_at  DateTime  @updatedAt
+  id         Int      @id @default(autoincrement())
+  name       String
+  slug       String   @unique
+  created_at DateTime @default(now())
+  updated_at DateTime @updatedAt
 
-  members OrganizationMember[]
+  members   OrganizationMember[]
+  customers OrganizationCustomer[]
+  teams     Team[]
+  tickets   Ticket[]
 }
 
 model OrganizationMember {
   user_id         Int
   organization_id Int
-  role            OrganizationRole  
-  joined_at       DateTime @default(now())
+  role            OrganizationRole
+  joined_at       DateTime         @default(now())
 
-  user         User @relation(fields: [user_id], references: [id])
+  user         User         @relation(fields: [user_id], references: [id])
   organization Organization @relation(fields: [organization_id], references: [id])
-  
+
   @@id([user_id, organization_id])
 }
 
 enum OrganizationRole {
   ADMIN
   AGENT
+}
+
+model Customer {
+  id         Int      @id @default(autoincrement())
+  first_name String
+  last_name  String
+  email      String
+  phone      String?
+  created_at DateTime @default(now())
+  updated_at DateTime @updatedAt
+
+  organization_customers OrganizationCustomer[]
+  tickets                Ticket[]
+}
+
+model OrganizationCustomer {
+  organization_id Int
+  customer_id     Int
+  organization    Organization @relation(fields: [organization_id], references: [id])
+  customer        Customer     @relation(fields: [customer_id], references: [id])
+  created_at      DateTime     @default(now())
+
+  @@id([organization_id, customer_id])
+}
+
+model Team {
+  id              Int      @id @default(autoincrement())
+  name            String
+  description     String?
+  created_at      DateTime @default(now())
+  updated_at      DateTime @updatedAt
+  organization_id Int
+
+  organization Organization @relation(fields: [organization_id], references: [id])
+  team_members TeamMember[]
+  tickets      Ticket[]
+}
+
+model TeamMember {
+  team_id    Int
+  user_id    Int
+  created_at DateTime @default(now())
+
+  team   Team @relation(fields: [team_id], references: [id])
+  member User @relation(fields: [user_id], references: [id])
+
+  @@id([team_id, user_id])
+}
+
+model Ticket {
+  id                Int            @id @default(autoincrement())
+  organization_id   Int
+  customer_id       Int
+  assigned_team_id  Int?
+  assigned_agent_id Int?
+  subject           String
+  description       String
+  status            TicketStatus
+  priority          TicketPriority
+  created_at        DateTime       @default(now())
+  updated_at        DateTime       @updatedAt
+  resolved_at       DateTime?
+  organization      Organization   @relation(fields: [organization_id], references: [id])
+  team              Team?          @relation(fields: [assigned_team_id], references: [id])
+  agent             User?          @relation(fields: [assigned_agent_id], references: [id])
+  customer          Customer       @relation(fields: [customer_id], references: [id])
+  comments          Comment[]
+  events            TicketEvent[]
+}
+
+enum TicketStatus {
+  OPEN
+  IN_PROGRESS
+  WAITING_FOR_CUSTOMER
+  RESOLVED
+  CLOSED
+}
+
+enum TicketPriority {
+  LOW
+  MEDIUM
+  HIGH
+  URGENT
+}
+
+model Comment {
+  id             Int               @id @default(autoincrement())
+  ticket_id      Int
+  author_user_id Int
+  body           String
+  visibility     CommentVisibility
+  created_at     DateTime          @default(now())
+  updated_at     DateTime          @updatedAt
+  ticket         Ticket            @relation(fields: [ticket_id], references: [id])
+  author         User              @relation(fields: [author_user_id], references: [id])
+}
+
+enum CommentVisibility {
+  PUBLIC
+  INTERNAL
+}
+
+model TicketEvent {
+  id            Int             @id @default(autoincrement())
+  ticket_id     Int
+  actor_user_id Int
+  event_type    TicketEventType
+  created_at    DateTime        @default(now())
+  ticket        Ticket          @relation(fields: [ticket_id], references: [id])
+  actor         User            @relation(fields: [actor_user_id], references: [id])
+  old_value     Json?
+  new_value     Json?
+  metadata      Json?
+}
+
+enum TicketEventType {
+  TICKET_CREATED
+  TICKET_ASSIGNED
+  TICKET_UNASSIGNED
+  STATUS_CHANGED
+  PRIORITY_CHANGED
+  TEAM_CHANGED
+  AGENT_CHANGED
+  CONTENT_CHANGED
+  COMMENT_ADDED
+  ATTACHMENT_ADDED
 }

@@ -1,10 +1,16 @@
 import {
     Body,
     Controller,
+    Delete,
+    Get,
+    Param,
+    ParseIntPipe,
+    Patch,
     Post
 } from '@nestjs/common';
 import { CreateOrganizationDto } from './dto/create-organization.dto';
 import { OrganizationsService } from './organizations.service';
+import { UpdateOrganizationDto } from './dto/update-organization.dto';
 
 @Controller('organizations')
 export class OrganizationsController {
@@ -15,36 +21,27 @@ export class OrganizationsController {
     return this.organizationsService.create(createOrganizationDto);
   }
 
-//   @Get()
-//   @ApiOkResponse({ type: ArticleEntity, isArray: true })
-//   findAll() {
-//     return this.articlesService.findAll();
-//   }
+  @Get()
+  findAll() {
+    return this.organizationsService.findAll();
+  }
 
-//   @Get('drafts')
-//   @ApiOkResponse({ type: ArticleEntity, isArray: true })
-//   findDrafts() {
-//     return this.articlesService.findDrafts();
-//   }
 
-//   @Get(':id')
-//   @ApiOkResponse({ type: ArticleEntity })
-//   findOne(@Param('id', ParseIntPipe) id: number) {
-//     return this.articlesService.findOne(id);
-//   }
+  @Get(':id')
+  findOne(@Param('id', ParseIntPipe) id: number) {
+    return this.organizationsService.findOne(id);
+  }
 
-//   @Patch(':id')
-//   @ApiCreatedResponse({ type: ArticleEntity })
-//   update(
-//     @Param('id', ParseIntPipe) id: number,
-//     @Body() updateArticleDto: UpdateArticleDto,
-//   ) {
-//     return this.articlesService.update(id, updateArticleDto);
-//   }
+  @Patch(':id')
+  update(
+    @Param('id', ParseIntPipe) id: number,
+    @Body() updateOrganizationDto: UpdateOrganizationDto ,
+  ) {
+    return this.organizationsService.update(id, updateOrganizationDto);
+  }
 
-//   @Delete(':id')
-//   @ApiOkResponse({ type: ArticleEntity })
-//   remove(@Param('id', ParseIntPipe) id: number) {
-//     return this.articlesService.remove(id);
-//   }
+  @Delete(':id')
+  remove(@Param('id', ParseIntPipe) id: number) {
+    return this.organizationsService.remove(id);
+  }
 }

@@ -1,7 +1,7 @@
 {
-  "name": "median",
+  "name": "multi-tenant-helpdesk",
   "version": "0.0.1",
-  "description": "",
+  "description": "Multi-tenant Customer Support Platform built with NestJS & Prisma",
   "author": "",
   "private": true,
   "license": "UNLICENSED",

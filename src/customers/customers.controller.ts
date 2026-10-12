@@ -25,26 +25,32 @@ export class CustomersController {
   }
 
   @Get()
-  findAll() {
-    return this.customersService.findAll();
+  getAllCustomersOfOrganization(
+    @Param('organizationId', ParseIntPipe) organizationId: number
+  ) {
+    return this.customersService.getAllCustomersOfOrganization(organizationId);
   }
 
 
-  @Get(':id')
-  findOne(@Param('id', ParseIntPipe) id: number) {
-    return this.customersService.findOne(id);
+  @Get(':customerId')
+  getCustomerInOrganization(
+    @Param('organizationId', ParseIntPipe) organizationId: number,
+    @Param('customerId', ParseIntPipe) customerId: number,
+  ) {
+    return this.customersService.getCustomerInOrganization(organizationId, customerId);
   }
 
-  @Patch(':id')
-  update(
-    @Param('id', ParseIntPipe) id: number,
+  @Patch(':customerId')
+  updateCustomer(
+   @Param('organizationId', ParseIntPipe) organizationId: number,
+    @Param('customerId', ParseIntPipe) customerId: number,
     @Body() updateCustomerDto: UpdateCustomerDto,
   ) {
-    return this.customersService.update(id, updateCustomerDto);
+    return this.customersService.updateCustomer(organizationId, customerId, updateCustomerDto);
   }
 
-  @Delete(':id')
-  remove(@Param('id', ParseIntPipe) id: number) {
-    return this.customersService.remove(id);
-  }
+  // @Delete(':id')
+  // remove(@Param('id', ParseIntPipe) id: number) {
+  //   return this.customersService.remove(id);
+  // }
 }

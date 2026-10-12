@@ -31,41 +31,99 @@ export class CustomersService {
     });
   }
 
-  findAll() {
-    return this.prisma.customer.findMany();
+  async getAllCustomersOfOrganization(organizationId: number) {
+    // check if org exists
+    const organization = await this.prisma.organization.findUnique({
+      where: { id: organizationId },
+    });
+
+    if (!organization) {
+      throw new NotFoundException(
+        `Organization with id ${organizationId} not found`,
+      );
+    }
+
+    return await this.prisma.customer.findMany({
+      where: {
+        organization_customers: {
+          some: {
+            organization_id: organizationId,
+          },
+        },
+      },
+    });
   }
 
-  async findOne(id: number) {
-    const customer = await this.prisma.customer.findUnique({
-      where: { id },
+
+  async getCustomerInOrganization(organizationId: number, customerId: number) {
+    // check if org exists
+    const organization = await this.prisma.organization.findUnique({
+      where: { id: organizationId },
+    });
+
+    if (!organization) {
+      throw new NotFoundException(
+        `Organization with id ${organizationId} not found`,
+      );
+    }
+
+    // check if customer exists in the org
+    const customer = await this.prisma.customer.findFirst({
+      where: {
+        id: customerId,
+        organization_customers: {
+          some: {
+            organization_id: organizationId,
+          },
+        },
+      },
     });
 
     if (!customer) {
       throw new NotFoundException(
-        `Customer with id ${id} not found`,
+        `Customer with id ${customerId} not found in organization ${organizationId}`,
       );
     }
 
     return customer;
   }
 
-  async update(id: number, updateCustomerDto: UpdateCustomerDto) {
-    const existingCustomer = await this.prisma.customer.findUnique({
-      where: { id },
+  async updateCustomer(organizationId: number, customerId: number, updateCustomerDto: UpdateCustomerDto) {
+    // check if org exists
+    const organization = await this.prisma.organization.findUnique({
+      where: { id: organizationId },
     });
 
-    if (!existingCustomer) {
+    if (!organization) {
       throw new NotFoundException(
-        `Customer with id ${id} not found`,
+        `Organization with id ${organizationId} not found`,
+      );
+    }
+
+    // check if customer exists in the org
+    const customer = await this.prisma.customer.findFirst({
+      where: {
+        id: customerId,
+        organization_customers: {
+          some: {
+            organization_id: organizationId,
+          },
+        },
+      },
+    });
+
+    if (!customer) {
+      throw new NotFoundException(
+        `Customer with id ${customerId} not found in organization ${organizationId}`,
       );
     }
     return await this.prisma.customer.update({
-      where: { id },
+      where: { id: customerId },
       data: updateCustomerDto,
     });
   }
 
-  remove(id: number) {
-    return this.prisma.team.delete({ where: { id } });
-  }
+  // remove(id: number) {
+  //   return this.prisma.team.delete({ where: { id } });
+  // }
 }
